@@ -1,0 +1,94 @@
+---
+title: "Logistic Regression"
+author: "Nurmatov Salim"
+date: "16 12 2020"
+output: html_document
+---
+
+###(Logistic regression)  If one predicts the probability of success of all the data points in a training set using a logistic regression model and adds up all of these probabilities, this number will equal the number of successes in the training set.  In other words, “the probability mass equals the counts.”  In this assignment, you will analyze this fact by using the same survey.csv dataset that was used is in Lab Exercise 7: Logistic Regression. Do this by creating a Postgresql query that uses MADlib functions.
+
+
+#Create a Postgresql query using MADlib functions
+
+#Enter the psql environment and connect to the training2 database. Create a table named survey with the same number of columns as survey.csv, all of type integer (drop any table named survey that already exists).  Import the data in survey.csv into the survey table you just created in database training2.
+```{r}
+#Import survey.csv
+my_table <- read.csv("D:\\DataScience\\DataScience_lab1_7\\survey.csv")
+head
+```
+#As done in Lab Exercise 6: Linear Regression, create a column in the survey table that consists of the integer 1 for all of the rows of data. 
+
+#Since the price column’s values are categorical between $10, $20, and $30, create the following additional columns in the survey table:
+
+#price20 - will have the value 1 if the price is $20, 0 otherwise
+
+```{r}
+my_table$price20 <- as.numeric(my_table$Price==20)
+```
+
+#price30 - will have the value 1 if the price is $30, 0 otherwise
+
+```{r}
+my_table$price30 <- as.numeric(my_table$Price==30)
+```
+
+#In order to create a logistic model on the data, the dependent variable (mydepv) needs to be of type Boolean while all of the independent variables need to be in the form of an array. 
+
+
+#Create a new table called survey2 (drop it if it already exists) that contains the data from survey.  To use the MADlib logistic regression function, Survey2 needs to have two columns as follows.  The first column is a Boolean variable that is populated with the dependent variable mydepv.  The second column is an array of integers for the independent variables.
+
+
+###a.      Use the MADlib function logregr to create a logistic regression model and display only the coefficients of the independent variables.  Note: You can refer to the documentation for logregr at:
+
+#http://devdoc.madlib.net/v0.3/group__grp__logreg.html   
+
+#(the link is dead, as actual version of MADlib is 1.17.0, not 0.3)
+
+#MADlib API had been changed, so please follow instructions in the assignment, as MADlib in the VM is outdated (in case you still use it).  
+
+```{r}
+LRM <- glm(MYDEPV ~  Income + Age + price20 + price30, data = ,my_table, family = binomial)
+summary(LRM)
+```
+
+###b.      For every unit increase in income while all other independent variables remain constant, by what percentage does the odds-ratio increase/decrease?
+
+###c.       If the price of a row of data were to increase from $10 to $30 while all other independent variables remained constant, by what percentage would the odds-ratio increase/decrease?
+
+```{r}
+my_table$pricefactor = relevel(as.factor(my_table$Price), "30")
+MLR2 = glm(MYDEPV ~ Income + Age + pricefactor, data = my_table, family=binomial(link="logit"), na.action=na.pass)
+summary(MLR2)
+
+cat("-->: ", exp(MLR2$coefficients["Income"])*100 - 100)
+cat("-->: ", (exp(MLR2$coefficients["factor(Price30)"]))*100 - 100)
+
+```
+
+
+#Use our logistic regression model to make predictions on probability of success for each of the rows of data in the survey table. Add a column named odds_ratio to the survey table that calculates the odds-ratio of each row of data. Add another column to the survey table named prediction that uses the odds_ratio column data to solve for the probability of success for a row of data.
+```{r}
+library(ROCR)
+```
+
+```{r}
+my_table$Prob <- predict(LRM, type = 'response')
+preobj <- prediction(my_table$Prob, my_table$MYDEPV)
+sum(my_table$Prob)
+sum(my_table$MYDEPV)
+```
+
+###d.      Test the rule that the probability mass equals the counts.  Use the survey table and take the sums of the mydepv column and the prediction column.  Are the values equal? Excluding rounding errors, does probability mass equal count?
+
+
+
+###e.       Using the logistic model we have created, what is the likelihood of a person who is 25 years old with an income of $58,000 accepting an offer with a price of $20?
+
+
+```{r}
+answer <- data.frame(Income = 78.203, Age = 66, Price = c(10), price20 = 0, price30 = 0)
+per_ll <- predict(LRM, answer, type = "response")
+View(per_ll)
+```
+#Стараюсь преугадать что будет по такому набору данных
+

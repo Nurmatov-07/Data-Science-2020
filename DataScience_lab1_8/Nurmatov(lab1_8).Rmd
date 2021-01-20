@@ -1,0 +1,146 @@
+---
+title: "Naïve Bayes"
+author: "Nurmatov Salim"
+date: "25 12 2020"
+output: html_document
+---
+
+#4.5        (Naïve Bayes)  In this assignment you will train a Naïve Bayes classifier on categorical data and predict individuals’ incomes.  Import the nbtrain.csv file.  Use the first 9010 records as training data and the remaining 1000 records as testing data.
+
+```{r}
+my_data <- read.csv("D:/DataScience/DataScience_lab1_8/nbtrain.csv")
+
+train_data <- head(my_data, 9010)
+test_data <- tail(my_data, 1000)
+
+```
+
+###a.      Construct the Naïve Bayes classifier from the training data, according to the formula “income ~ age + sex + educ”.  To do this, use the “naiveBayes” function from the “e1071” package.  Provide the model’s a priori and conditional probabilities.
+
+```{r}
+#install.packages('naivebayes')
+library(naivebayes)
+library(e1071)
+```
+
+```{r}
+
+bayes = naiveBayes(as.factor(income) ~ age + sex + educ, train_data)
+summary(bayes)
+```
+
+###b.      Score the model with the testing data and create the model’s confusion matrix.  Also, calculate the overall, 10-50K, 50-80K, and GT 80K misclassification rates. Explain the variation in the model’s predictive power across income classes.
+
+```{r}
+install.packages("caret")
+library(caret)
+```
+
+```{r}
+pred = predict(bayes, test_data, type = "response")
+conf_matx = confusionMatrix(pred, as.factor(test_data$income))
+print(conf_matx)
+```
+
+#4.6        (Naïve Bayes)  As in assignment 4.5, import the nbtrain.csv file.  Use the first 9010 records as training data and the remaining 1000 records as testing data.
+
+```{r}
+new_data <- read.csv("D:/DataScience/DataScience_lab1_8/nbtrain.csv")
+new_train_data <- head(new_data, 9010)
+new_test_data <- tail(new_data, 1000)
+```
+
+###a.      Construct the classifier according to the formula “sex ~ age + educ + income”, and calculate the overall, female, and male misclassification rates.  Explain the misclassification rates?
+
+```{r}
+library(naivebayes)
+library(e1071)
+```
+
+```{r}
+bayes_1 = naiveBayes(as.factor(sex) ~ age + income + educ, data=new_train_data)
+summary(bayes_1)
+pred_1 = predict(bayes_1, new_test_data, type = "class")
+conf_matrix_1 <- confusionMatrix(pred_1, as.factor(new_test_data$sex))
+print(conf_matrix_1)
+```
+
+###b.      Divide the training data into two partitions, according to sex, and randomly select 3500 records from each partition.  Reconstruct the model from part (a) from these 7000 records.  Provide the model’s a priori and conditional probabilities.
+
+```{r}
+library(dplyr)
+
+Female = subset(new_train_data, new_train_data$sex == 'F')
+Male = subset(new_train_data, new_train_data$sex == 'M')
+print(Female)
+print(Male)
+```
+
+
+```{r}
+Female = sample_n(Female, 3500)
+Male = sample_n(Male, 3500)
+print(Female)
+print(Male)
+```
+```{r}
+data = rbind(Male, Female)
+model = naiveBayes(as.factor(sex) ~ age + income + educ, data = data)
+
+print(model)
+```
+
+###c.       How well does the model classify the testing data?  Explain why.
+
+```{r}
+testPred = predict(model, new_test_data, type = "class")
+conf_matrix_2 = confusionMatrix(testPred, as.factor(new_test_data$sex))
+conf_matrix_2$table
+```
+
+###d.      Repeat step (b) 4 several times.  What effect does the random selection of records have on the model’s performance?
+
+```{r}
+Female = subset(new_train_data, new_train_data$sex == 'F')
+Male = subset(new_train_data, new_train_data$sex == 'M')
+Female = sample_n(Female, 3500)
+Male = sample_n(Male, 3500)
+data = rbind(Male,Female)
+model <- naiveBayes(as.factor(sex) ~ age + income + educ, data=data)
+model
+```
+
+
+```{R}
+Female = subset(new_train_data, new_train_data$sex == 'F')
+Male = subset(new_train_data, new_train_data$sex == 'M')
+Female = sample_n(Female, 3500)
+Male = sample_n(Male, 3500)
+data = rbind(Male,Female)
+model <- naiveBayes(as.factor(sex) ~ age + income + educ, data=data)
+model
+```
+
+
+```{r}
+Female = subset(new_train_data, new_train_data$sex == 'F')
+Male = subset(new_train_data, new_train_data$sex == 'M')
+Female = sample_n(Female, 3500)
+Male = sample_n(Male, 3500)
+data = rbind(Male,Female)
+model <- naiveBayes(as.factor(sex) ~ age + income + educ, data=data)
+model
+```
+
+
+```{r}
+Female = subset(new_train_data, new_train_data$sex == 'F')
+Male = subset(new_train_data, new_train_data$sex == 'M')
+Female = sample_n(Female, 3500)
+Male = sample_n(Male, 3500)
+data = rbind(Male,Female)
+model <- naiveBayes(as.factor(sex) ~ age + income + educ, data=data)
+model
+```
+###Conditional probabilities are very similar to each other in sample.
+      What conclusions can one draw from this exercise?

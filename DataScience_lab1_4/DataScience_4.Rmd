@@ -1,0 +1,132 @@
+---
+theme: K-means
+author: Nurmatov Salim
+date: 15/11/2020
+lecturer: Dyumin A.A.
+---
+
+#4.1a        (K-means)
+
+###a. 	Cluster the data and plot all 52 data points, along with the centroids.  Mark all data points and centroids belonging to a given cluster with their own color.  Here, let k=10.
+```{r}
+cltr <- kmeans(income_elec_state, 10)
+plot(income_elec_state, col = cltr$cluster)
+points(cltr$centers, col = 1:10, pch = 8)
+
+```
+
+###b.	Repeat step (a) several times.  What can change each time you cluster the data?  Why?  How do you prevent these changes from occurring?
+
+#If you repeat this point a few more times, you can get a different result.
+
+###c.	Once you’ve accounted for the issues in the previous step, determine a reasonable value of k.  Why would you suggest this value of k?
+```{r}
+pkgs <- c("factoextra",  "NbClust")
+install.packages(pkgs)
+library(factoextra)
+library(NbClust)
+install.packages("fviz_nbclust")
+fviz_nbclust(income_elec_state, kmeans, method = "wss")
+```
+
+#The results show that 5 is the optimal number of clusters, since it is the "fold of the elbow".
+
+
+###d. 	Convert the mean household income and mean electricity usage to a log10 scale and cluster this transformed dataset.  How has the clustering changed?  Why?
+```{r}
+new_table <- log10(income_elec_state)
+k = kmeans(new_table, 10, nstart = 100, iter.max = 250)
+plot(new_table, col = k$cluster)
+points(k$centers, col = 1:10, pch = 8)
+
+```
+
+###e. 	Reevaluate your choice of k.  Would you now choose k differently?  Why or why not?
+```{r}
+fviz_nbclust(new_table, kmeans, method = "wss")
+```
+#Now the graph shows the optimal number of clusters equal to 5
+
+###f. 	Have you observed an outlier in the data?  Remove the outlier and, once again, reevaluate your choice of k.
+```{r}
+new_table <- subset(new_table, rownames(new_table) != "PR")
+fviz_nbclust(new_table, kmeans, method = "wss")
+clrt2 <- kmeans(x = new_table, centers = 5, nstart = 100, iter.max = 250)
+plot(new_table, col = clrt2$cluster)
+points(clrt2$centers, col = 1:5, pch = 8)
+
+```
+
+###g.	Color a map of the U.S. according to the clustering you obtained.  To simplify this task, use the “maps” package and color only the 48 contiguous states and Washington D.C.
+```{r}
+my_map <- c('AL', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FL', 'GA', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 
+'MA', 'MA', 'MI', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NY', 'NY', 'NY', 'NC', 'NC', 'NC', 'ND', 'OH', 
+'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'VA', 'VA', 'WA', 'WA', 'WA', 'WA', 'WA', 'WV', 'WI', 'WY')
+col_map <- clrt2$cluster[my_map]
+install.packages("maps")
+library(maps)
+map('state', col = col_map, fill = TRUE)
+
+```
+
+#4.1b        (Hierarchical clustering)
+
+```{r}
+clusterH <- hclust(dist(income_elec_state)) 
+plot(clusterH)
+```
+
+```{r}
+clusterCut <- cutree(clusterH, 5)
+plot(income_elec_state, col = clusterCut) 
+
+```
+
+```{r}
+clusterH2 <- hclust(dist(income_elec_state), method = 'average')
+plot(clusterH2)
+
+```
+
+```{r}
+clusterCut <- cutree(clusterH2, 5)
+plot(income_elec_state, col = clusterCut)
+
+```
+
+```{r}
+clusterH3 <- hclust(dist(income_elec_state), method = 'single')
+plot(clusterH3)
+```
+
+```{r}
+clusterCut1 <- cutree(clusterH3, 5)
+plot(income_elec_state, col = clusterCut)
+
+```
+
+```{r}
+clusterH4 <- hclust(dist(income_elec_state), method = 'ward.D')
+plot(clusterH4)
+```
+
+```{r}
+clusterCut2 <- cutree(clusterH4, 5)
+plot(income_elec_state, col = clusterCut)
+```
+
+```{r}
+clusterH5 <- hclust(dist(income_elec_state), method = 'median')
+plot(clusterH5)
+```
+
+```{r}
+clusterCut2 <- cutree(clusterH5, 5)
+plot(income_elec_state, col = clusterCut)
+
+```
+
+#According to hierarchical clustering, no particular changes are noticed, except that the method paints the point diagram differently
+
+
+=====

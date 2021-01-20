@@ -1,0 +1,78 @@
+---
+theme "Problem 3.1.2"
+author "Nurmatov Salim"
+date: "14/11/2020"
+lecturer "Dyumin A.A."
+---
+
+	Read the ZipIncome into R
+table1 <- read.table("D:/zipIncome.txt", header = TRUE, sep = "|") 
+
+	Сhanging column names
+names(table1) <- c("zipCode","income")
+
+
+### a.      Analyze the summary of your data.  What are the mean and median average incomes?
+
+mean(table1$income, na.rm = TRUE)
+[1] 48245.24
+median(table1$income, na.rm = TRUE)
+[1] 44163.48
+ 
+
+### b.      Plot a scatter plot of the data. 
+
+plot(table1$zipCode, table1$income, xlab = "Zip Codes", ylab = "Income")
+The result of this script shows that there are outliers in 0 and 250000
+
+
+	In order to omit outliers, create a subset of the data so that:
+      $7,000 < income < $200,000	  
+
+res <- subset(table1, income > 7000, & income < 200000)
+
+###c.        What’s your new mean?
+
+plot(res$zipCode, res$income, xlab = "Zip Codes", ylab = "Income", main = "Average Household Income by Zip Code")
+mean(res$income, na.rm = TRUE)
+[1] 48464.95
+
+
+###d.       Create a simple box plot of your data.  Be sure to add a title and label the axes.
+
+boxplot(data = res, income ~ zipCode, main = "Average Household Income by Zip Code", xlab = "Zip Codes", ylab = "Income", col = NULL)
+
+
+###e.      In the box plot you created, notice that all of the income data is pushed towards the bottom of the graph because most average 
+incomes tend to be low.  Create a new box plot where the y-axis uses a log scale. Be sure to add a title and label the axes.
+
+boxplot(data = res, income ~ zipCode, main = "Average Household Income by Zip Code", xlab = "Zip Codes", ylab = "Income", col = NULL, log = 'y')
+
+ 
+###f.        Make a ggplot that consists of just a scatter plot using the function geom_point() with position = “jitter”  so that 
+the data points are grouped by zip code.  Be sure to use ggplot’s function for taking the log10 of the y-axis data.  
+(Hint: for geom_point, have alpha=0.2).
+
+install.packages("ggplot2")
+library(ggplot2)
+ggplot(data = res, aes(as.factor(zipCode), income)) + geom_point(position = "jitter", alpha = 0.2) + scale_y_log10()
+
+
+###g.        Create a new ggplot by adding a box plot layer to your previous graph.  To do this, add the ggplot function geom_boxplot().
+Also, add color to the scatter plot so that data points between different zip codes are different colors.
+Be sure to label the axes and add a title to the graph
+
+ggplot(res, aes(x=as.factor(zipCode), y = income)) + geom_point(aes(colour = factor(zipCode)), position = 'jitter', alpha=0.2) + 
+geom_boxplot(alpha = 0.1, outlier.size = 0) + scale_y_log10() + labs(color="Region",x="Zip Code",y = "Income",title = "Average Income by Zip Code") 
+
+###h.       What can you conclude from this data analysis/visualization?
+
+	Based on the visualization data and the work done, we can conclude that such graphs clearly show reports on income in household is 
+better developed and where it is not. Also we need to pay attantion to the outliers and make conlusions that these outliers have csused 
+the instability of certain external factors: in general it is climate, seasonality, yield, when we talk about crop production - natural 
+disasters, plant variety, the use of agriculture, sales market, when we talk about animal husbandry - veterinary, feed and breed.
+
+	Similar data visualizations allow you to better communicate your results to stakeholders. Allows you to better understand what 
+	the data says and allows you to have views for further work
+
+===== 

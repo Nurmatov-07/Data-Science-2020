@@ -1,0 +1,128 @@
+---
+theme: K-means
+author: Nurmatov Salim
+date: 15/11/2020
+lecturer: Dyumin A.A.
+---
+
+
+Create a frequent item plot, and a frequent item table. 
+
+table1 <- read.csv(file = "D:/DataScience/DataScience_lab1_5/AssociationRules.csv", header = FALSE, sep = " ")
+table2 <- read.transactions(file = 'D:/DataScience/DataScience_lab1_5/AssociationRules.csv', sep = ' ')
+
+###a.      Determine the most frequent item bought in the store.
+
+install.packages("arules")
+library("arules")
+
+install.packages("arulesCBA")
+library("arulesCBA")
+
+install.packages("arulesViz")
+library("arulesViz")
+
+summary(table1)
+
+summary(size(table2))
+frequent_item <- eclat(table2, parameter = list(supp = 0.07, maxlen = 25))
+inspect(frequent_item)
+
+itemFrequencyPlot(table2, topN=10, type = "absolute", main = "Item Frequency")
+
+###b.      How many items were bought in the largest transaction?
+
+#### Mine the Association rules with a minimum Support of 1% and a minimum Confidence of 0%.
+
+ass_rules <- apriori(table2, parameter = list(support = 0.01, confidence = 0))
+
+###c.       How many rules appear in the data? 
+
+###d.      How many rules are observed when the minimum confidence is 50%.
+
+ass_rules <- apriori(assRules, parameter = list(confidence = 0,5))
+
+###e.      Explain how the specified confidence impacts the number of rules. 
+
+impacts <- cbind(rules@quality$confidence, rules@quality$count)
+colnames(impacts) <- c("confidence", "count")
+plot(impacts)
+
+#### Create a scatter plot comparing the parameters support and confidence on the axis, and lift with shading.  
+
+plot(ass_rules, measure = c("confidence","support"), shading = "lift")
+
+###f.        Identify the positioning of the interesting rules.
+ 
+head(quality(ass_rules))
+OR
+new_rules <- head(ass_rules, by='lift', n = 10)
+inspect(new_rules)
+
+ Compare support and lift.  
+
+###g.      Create a scatter plot measuring support vs. lift; record your observations. 
+
+ plot(ass_rules, measure = c("support", "lift"), shading = "confidence")
+ 
+###h.      Where are the rules located that would be considered interesting and useful? 
+
+Identify the most interesting rules by extracting the rules in which the Confidence is >0.8.   
+
+###i.        One downside to the Apriori algorithm, is that extraneous rules can be generated that are not particularly useful.  
+Identify where these rules are located on the graph.  Explain the relationship between the expected observation of these itemsets and 
+the actual observation of the itemsets.  
+
+Observe the output of the data table for the most interesting rules. 
+ 
+subrules <- ass_rules[quality(ass_rules)$confidence > 0.8]
+plot(subrules, control = list(jitter=2))
+inspect(subrules)
+
+###k.       Sort the rules stating the highest lift first.  Provide the 10 rules with the lowest lift. Do they appear to be coincidental?  
+Why or why not? 
+rules_high_lift <- head(sort(ass_rules, by = 'lift', decreasing = TRUE), 10)
+inspect(rules_high_lift)
+plot(rules_high_lift, method="graph", control=list(type="items"))
+
+rules_low_lift <- head(subrules, by = 'lift', decreasing = FALSE, n = 10)
+inspect(rules_low_lift)
+plot(rules_low_lift, method = "graph")
+
+####	Create a Matrix-based visualization of two measures with colored squares.  The two measures should compare confidence and lift 
+(have recorded = FALSE).  Note that 4 interesting rules stand out on the graph. 
+
+
+###l.	Identify these rules and explain their appearance.
+
+###m.    What can you infer about rules represented by a dark blue color?
+
+plot(subrules, method = "matrix", shading = c("confidence", "lift"), control = list(reorder = FALSE))
+
+  Extract the three rules with the highest lift.
+  
+###n.      Record the Rules.  Explain why these rules vary from the rules in Step 3. 
+
+###o.      Create a Graph-based visualization with items and rules as vertices.
+
+###p.      Based on your observations, explain how you would expect association rules to relate to order (i.e. the number of items contained in the rule).
+
+ass_rules2 <- head(sort(ass_rules, by = "lift"), 3)
+inspect(ass_rules2)
+plot(ass_rules2, method = "graph")
+
+  Create a training set from the first 8,000 transactions. Create a testing set from the last 2,000 transactions.  Run the algorithm on each dataset.  Compare the results.
+subset1 <- head(trans, n = 8000)
+subset2 <- tail(trans, n = 2000)
+inspect(apriori(subset1, parameter = list(supp = 0.01, conf = 0)))
+inspect(apriori(subset2, parameter = list(supp = 0.01, conf = 0)))
+summary(apriori(subset1, parameter = list(supp = 0.01, conf = 0)))
+summary(apriori(subset2, parameter = list(supp = 0.01, conf = 0)))
+plot(apriori(subset1, parameter = list(supp = 0.01, conf = 0)), measure = c("support", "confidence"), shading = "lift")
+plot(apriori(subset2, parameter = list(supp = 0.01, conf = 0)), measure = c("support", "confidence"), shading = "lift")
+
+###q.      Justify that the relationships we see are not just an artifact of the data we started with.
+
+       Can we conclude that the association rules we found are actually true in the population we are studying?
+
+

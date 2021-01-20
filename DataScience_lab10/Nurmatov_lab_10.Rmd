@@ -1,0 +1,153 @@
+---
+title: "Time Series"
+author: "Nurmatov Salim"
+date: "30 12 2020"
+output: html_document
+---
+
+
+#4.8        (Time Series)  A classic dataset used in time series lectures is the quarterly earnings per share (EPS) for Johnson & Johnson stock.  Shumway and Stoffer [2006] utilize this dataset in their text and provide a copy of the dataset.   
+
+```{r}
+my_table <- read.table(file = "D:\\DataScience\\DataScience_lab10\\jj.dat", header = TRUE)
+```
+
+#There are 84 values in this dataset covering the EPS from the first quarter of 1960 to the fourth quarter of 1980.
+
+###a.      After obtaining a copy of the dataset, plot the quarterly EPS vs. time.  Describe any patterns that you observe.
+
+```{r}
+my_new_table <- ts(data = my_table, start = 1960, end = 1980, frequency = 4)
+plot(my_new_table)
+```
+
+This graph says that stock earnings have grown quite strongly in 20 years, despite sharp downturns, which could be caused by inflation, crop failure, epidemic or other things, depending on the type of business. Also, a very good example is the expansion of an enterprise, for example, the merger of two banks requires high costs, sharp downturns on the graph may indicate that during the expansion there were large costs that soon justified their expectations as shown on the graph in the range from 1975 to 1980 of the year.
+
+
+###b.      In order to perform an ARIMA model, the time series will need to be transformed to remove any trend.  Plot the difference of xt and xt-1, for all t > 0.   Has this difference adequately detrended the series? Does the variability of the EPS appear constant over time?  Why does the constant variance matter?
+
+```{r}
+table_differ <- diff(my_new_table)
+plot(table_differ)
+```
+In the previous chart, the trend was up. And as we can see, there is no consistency in this graph.
+
+###c.       Plot the log10 of the quarterly EPS vs. time and plot the difference of log10(xt ) and log10(xt-1) for all t > 0.  Has this adequately detrended the series?  Has the variability of the differenced log10(EPS) become more constant? 
+
+```{r}
+my_log_table <- log10(my_new_table)
+log_differ_table <- diff(my_log_table)
+plot(log_differ_table)
+```
+Yes, the logarithm makes the graph look more consistent
+
+###d.      Treating the differenced log10 of the EPS series as a stationary series, plot the ACF and PACF of this series.  What possible ARIMA models would you consider and why?
+
+```{r}
+acf(my_log_table)
+
+pacf(my_log_table)
+```
+It is required to analytically determine the trend. To do this, it is necessary to evaluate existing models.
+
+###e.      Run the proposed ARIMA models from part d and compare the results.  Identify an appropriate model.  Justify your choice.  
+
+```{r}
+ARI_1 <- arima(my_log_table, order = c(4,1,0)) 
+print(ARI_1)
+ARI_2 <- arima(my_log_table, order = c(5,1,2)) 
+print(ARI_2)
+ARI_3 <- arima(my_log_table, order = c(3,1,0)) 
+print(ARI_3)
+ARI_4 <- arima(my_log_table, order = c(3,1,1)) 
+print(ARI_4)
+ARI_5 <- arima(my_log_table, order = c(4,1,1))
+print(ARI_5)
+```
+
+As a result, according to such parameters as the order of the difference, the order of autoregressive and the order of the moving average the best model is determined. Judging by ACI, ARI_5 is the best model.
+
+#Hint: The Akaike Information Criterion  (AIC) can be used to compare the models.  
+
+#4.9        (Time Series)  Why is the choice of natural log or log base 10 in Problem 4.8 somewhat irrelevant to the transformation and the analysis?
+
+From a visualization point of view, the logarithmic graph does not play a big role in selection and construction of the desired model.
+
+#4.10    (Time Series)  Why is the value of the ACF for lag 0 equal to one? Note: The ACF R function plots the value at lag 0.
+
+
+#4.11    (Time Series) Using arima.sim in R, simulate 10,000 points for AR(p) p = 1,2,3,4. Plot the simulated series, ACF and PACF.  What pattern emerges between p and the plots? 
+
+#Hint: Here is possible R simulation code for the AR(4) model. 
+
+```{r}
+ts.sim_AR4 <- arima.sim(n = 10000, list(ar = c(0.9, -0.5, .2, -.3)))
+acf(ts.sim_AR4)
+pacf(ts.sim_AR4)
+plot(ts.sim_AR4)
+```
+
+
+```{r}
+ts.sim_AR3 <- arima.sim(n = 10000, list(ar = c(0.9, -0.5, .2)))
+acf(ts.sim_AR3)
+pacf(ts.sim_AR3)
+plot(ts.sim_AR3)
+```
+
+
+```{r}
+ts.sim_AR2 <- arima.sim(n = 10000, list(ar = c(0.9, -0.5)))
+acf(ts.sim_AR2)
+pacf(ts.sim_AR2)
+plot(ts.sim_AR2)
+```
+
+
+```{r}
+ts.sim_AR1 <- arima.sim(n = 10000, list(ar = c(0.9)))
+acf(ts.sim_AR1)
+pacf(ts.sim_AR1)
+plot(ts.sim_AR1)
+```
+Judging by the model of predicting traffic values, we can say that there is no trend at all.
+
+###The choice of the coefficients needs to be carefully made to ensure that the simulated series is a stationary series.   Suggestion: Simply drop off the last coefficient to get to the AR(3) inputs, then the AR(2) inputs, and finally the AR(1) inputs.
+
+
+#4.12    (Time Series)  Using arima.sim in R, simulate 10,000 points for MA(p) p = 1,2,3,4. Plot the simulated series, ACF and PACF.  What pattern emerges between p and the plots?
+
+#Hint:  Here is possible R simulation code for the MA(4) model. 
+
+```{r}
+sim_AR4 <- arima.sim(n = 10000, list( ma = c(-1.9, 1.7, -1.5, 1.5)))
+acf(sim_AR4)
+pacf(sim_AR4)
+plot(sim_AR4)
+```
+
+
+```{r}
+sim_MA3 <- arima.sim(n = 10000, list( ma = c(-1.9, 1.7, -1.5)))
+acf(sim_MA3)
+pacf(sim_MA3)
+plot(sim_MA3)
+```
+
+
+```{r}
+sim_MA2 <- arima.sim(n = 10000, list( ma = c(-1.9, 1.7)))
+acf(sim_MA2)
+pacf(sim_MA2)
+plot(sim_MA2)
+```
+
+
+```{r}
+sim_MA1 <- arima.sim(n = 10000, list( ma = c(0.9)))
+acf(sim_MA1)
+pacf(sim_MA1)
+plot(sim_MA1)
+```
+
+###The choice of the coefficients needs to be carefully made to ensure that the simulated series is a stationary series.   Suggestion: simply drop off the last coefficient to get to the MA(3) inputs, then the MA(2) inputs, and finally the MA(1) inputs.

@@ -1,0 +1,133 @@
+---
+title: "Decision Trees"
+author: "Nurmatov Salim"
+date: "21 12 2020"
+output: html_document
+---
+
+
+```{r}
+my_data <- read.csv("D:\\DataScience\\DataScience_lab1_7\\survey.csv")
+
+```
+
+
+```{r}
+install.packages("caret")
+library(caret)
+```
+
+```{r}
+
+#sample_size = round(nrow(my_data)*.8) # setting what is 70%
+train <- head(my_data,600)
+test <- tail(my_data, 150)
+
+```
+
+
+###a.      Build a classification tree from the training data using the “rpart” package, according to the formula “MYDEPV ~ Price + Income + Age”.  Use three-fold cross-validation and the information gain splitting index.  Which features were actually used to construct the tree?  (see the “printcp” function)  Plot the tree using the “rpart.plot” package.
+
+```{r}
+install.packages("rpart",repos="http://cran.rstudio.com/")
+library(rpart)
+```
+
+```{r}
+value1 <- rpart(MYDEPV~Price + Income + Age, data = train, method = 'class')
+value1
+```
+
+
+```{r}
+rpart.plot(value1, extra = 106)
+```
+
+
+
+###b.      Score the model with the training data and create the model’s confusion matrix.  Which class of MYDEPV was the model better able to classify?
+
+```{r}
+predict_unseen <-predict(value1, train, type = 'class')
+summary(predict_unseen)
+```
+
+```{r}
+install.packages('e1071', dependencies=TRUE)
+```
+
+```{r}
+table_mat <- confusionMatrix(predict_unseen, as.factor(train$MYDEPV))
+summary(table_mat)
+```
+
+#```{r}
+#accuracy_Test <- sum(diag(table_mat)) / sum(table_mat)
+#print(paste('Accuracy for test', accuracy_Test))
+#```
+
+###c.       Define the resubstitution error rate, and then calculate it using the confusion matrix from the previous step.  Is it a good indicator of predictive performance?  Why or why not?
+
+```{r}
+table_mat <- table(predict_unseen, as.factor(train$MYDEPV))
+print(table_mat)
+err.resub <- 1.0 - (table_mat[1,1]+table_mat[2,2])/sum(table_mat)
+summary(err.resub)
+```
+
+```{r}
+accuracy_Test <- sum(diag(table_mat)) / sum(table_mat)
+print(paste('Accuracy for test', accuracy_Test))
+```
+
+###d.      Using the “ROCR” package, plot the receiver operating characteristic (ROC) curve.  Note: For a refresher on how to use the ROCR package, see Lab Exercise 7: Logistic Regression.  Calculate the area under the ROC curve (AUC).  Describe the usefulness of this statistic.
+
+```{r}
+install.packages("ROCR")
+library(ROCR)
+```
+
+```{r}
+new_prediction <- prediction(predict(value1, type = "prob")[,2], train$MYDEPV)
+ROC <- performance(new_prediction, measure="tpr", x.measure="fpr")
+AUC <- performance(new_prediction, measure = 'auc')
+AUC@y.values
+plot(ROC, main = "Receiver performance curve")
+```
+
+###e.      Score the model with the testing data.  How accurate are the tree’s predictions?
+
+```{r}
+predict_test <- predict(value1, test, type = 'class')
+summary(predict_test)
+```
+
+```{r}
+table_mat <- confusionMatrix(predict_unseen, as.factor(train$MYDEPV))
+print(table_mat)
+```
+
+###f.        Repeat part (a), but set the splitting index to the Gini coefficient splitting index.  How does the new tree compare to the previous one? 
+```{r}
+GCSI <- rpart(MYDEPV~Price + Income + Age, data = train, method = 'class', parms=list(split='gini')) 
+GCSI
+rpart.plot(GCSI, extra = 106)
+```
+#comparing 2 trees built by different methods, you can see that they are no different from each other
+
+###g.      Pruning is a technique that reduces the size/depth of a decision tree by removing sections with low classification power, which helps reduce overfitting and simplifies the model, reducing the computational cost.  One way to prune a tree is according to the complexity parameter associated with the smallest cross-validation error.  Prune the new tree in this way using the “prune” function.  Which features were actually used in the pruned tree?  Why were certain variables not used?
+```{r}
+Prepruning <- prune(value1, cp=0.011538)
+summary(Prepruning)
+rpart.plot(Prepruning, extra = 106)
+
+```
+
+###h.      Create the confusion matrix for the new model, and compare the performance of the model before and after pruning.
+
+```{r}
+predict_test <- predict(Prepruning, train, type = 'class')
+table_mat <- confusionMatrix(predict_test, as.factor(train$MYDEPV))
+print(table_mat)
+```
+
